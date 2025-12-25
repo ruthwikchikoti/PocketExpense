@@ -126,15 +126,7 @@ npm start
 5. **Edit Expense Screen** - Update or delete existing expense
 6. **Insights Screen** - Monthly spending comparison and category breakdown
 
-## 🧪 Testing
 
-1. Start MongoDB (local or use MongoDB Atlas)
-2. Start backend server (`cd backend && npm start`)
-3. Run frontend app (`cd frontend && npm start`)
-4. Register a new user account
-5. Add expenses with different categories
-6. View insights screen for spending analytics
-7. Test offline mode by disconnecting internet and adding expenses
 
 ## 🔐 Environment Variables
 
@@ -166,7 +158,45 @@ Update `utils/config.ts` with your backend URL if needed (defaults to `http://lo
 
 
 
-###Pocket Expense Plus App Screenshots
+### Pocket Expense Plus App Screenshots
+<img width="404" height="830" alt="image" src="https://github.com/user-attachments/assets/0f67d3bf-3831-4bf5-8a18-12894a8a499d" />
+
+<img width="404" height="830" alt="image" src="https://github.com/user-attachments/assets/fecb1818-63a3-4d60-bfcd-9b6e296a33c5" />
+
+<img width="404" height="830" alt="image" src="https://github.com/user-attachments/assets/112e1ac5-824a-4c91-bf42-5844d092162d" />
+
+<img width="404" height="830" alt="image" src="https://github.com/user-attachments/assets/3ca43c49-cd8a-4fd4-9ddd-f6fb66a981af" />
+
+<img width="404" height="830" alt="image" src="https://github.com/user-attachments/assets/d9fb13e0-1032-402e-b1f1-d145e846709c" />
+
+<img width="404" height="830" alt="image" src="https://github.com/user-attachments/assets/197db111-c628-4c11-9b1b-edbf4c4b22ea" />
+
+<img width="404" height="830" alt="image" src="https://github.com/user-attachments/assets/ab7a7c53-000a-40ef-804a-810b41b672c3" />
+
+<img width="404" height="830" alt="image" src="https://github.com/user-attachments/assets/0f187ab7-4d39-4a77-bb83-28ed2e2c0976" />
+
+<img width="404" height="830" alt="image" src="https://github.com/user-attachments/assets/a8a7bb67-6d55-42ae-ae32-67efaa6cb650" />
+
+<img width="404" height="830" alt="image" src="https://github.com/user-attachments/assets/f0036d9c-66c8-4d10-a9b7-c99af909e4db" />
+
+<img width="404" height="830" alt="image" src="https://github.com/user-attachments/assets/d6094cb2-6635-4e91-9cdb-690b8db995c5" />
+
+<img width="404" height="830" alt="image" src="https://github.com/user-attachments/assets/3f7f6955-6adb-4ccb-8b5e-6b16b48fe329" />
+<img width="404" height="830" alt="image" src="https://github.com/user-attachments/assets/d955a4fc-831a-4971-9f3a-9109dd1a4580" />
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 *Above: Preview of Pocket Expense Plus UI, showing Home, Add Expense, and Insights screens.*
