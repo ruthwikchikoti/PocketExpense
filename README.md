@@ -184,6 +184,13 @@ Update `utils/config.ts` with your backend URL if needed (defaults to `http://lo
 <img width="404" height="830" alt="image" src="https://github.com/user-attachments/assets/3f7f6955-6adb-4ccb-8b5e-6b16b48fe329" />
 <img width="404" height="830" alt="image" src="https://github.com/user-attachments/assets/d955a4fc-831a-4971-9f3a-9109dd1a4580" />
 
+<img width="374" height="824" alt="image" src="https://github.com/user-attachments/assets/457357b4-a34e-4bc5-943a-5f83184d1f81" />
+<img width="374" height="824" alt="image" src="https://github.com/user-attachments/assets/293b0a27-f636-40bb-a925-640506c67c00" />
+<img width="374" height="824" alt="image" src="https://github.com/user-attachments/assets/ddfb7124-66c9-4161-bd9f-c0d0ab0449a7" />
+<img width="374" height="824" alt="image" src="https://github.com/user-attachments/assets/7fcdac41-adc9-4163-b484-81006405cdc4" />
+
+
+
 
 
 
