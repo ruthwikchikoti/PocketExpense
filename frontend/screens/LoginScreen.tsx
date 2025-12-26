@@ -39,11 +39,11 @@ const LoginScreen: React.FC<Props> = ({ navigation }) => {
 
     setLoading(true);
     try {
-      const result = await login(email, password);
-      
-      if (!result.success) {
+    const result = await login(email, password);
+
+    if (!result.success) {
         setLoading(false);
-        Alert.alert('Login Failed', result.message || 'Invalid credentials');
+      Alert.alert('Login Failed', result.message || 'Invalid credentials');
       } else {
         // Keep loading true - navigation will happen automatically via AppNavigator when user state changes
         // The loading state will be reset when the screen unmounts or when navigation completes

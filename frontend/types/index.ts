@@ -59,6 +59,29 @@ export interface CategoryInsight {
   change: number;
 }
 
+export interface Budget {
+  _id: string;
+  userId: string;
+  month: number;
+  year: number;
+  amount: number;
+  createdAt?: string;
+  updatedAt?: string;
+}
+
+export interface BudgetWithStats {
+  budget: Budget | null;
+  currentSpending: number;
+  remaining: number;
+  isOverBudget: boolean;
+}
+
+export interface BudgetWarning {
+  message: string;
+  isOverBudget: boolean;
+  remaining: number;
+}
+
 export type ExpenseCategory = 
   | 'Food' 
   | 'Transport' 
@@ -84,5 +107,7 @@ export type RootStackParamList = {
   MainTabs: undefined;
   AddExpense: undefined;
   EditExpense: { expense: Expense };
+  Budget: undefined;
+  Notifications: undefined;
 };
 

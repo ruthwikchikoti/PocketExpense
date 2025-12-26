@@ -1,6 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const Expense = require('../models/expense.model');
+const Budget = require('../models/budget.model');
 const authenticate = require('../middleware/auth.middleware');
 
 // All routes require authentication
@@ -16,6 +17,61 @@ router.post('/', async (req, res) => {
       return res.status(400).json({ message: 'Amount, category, and payment method are required' });
     }
 
+    const expenseDate = date ? new Date(date) : new Date();
+    
+    // Check budget for the month
+    const month = expenseDate.getMonth() + 1;
+    const year = expenseDate.getFullYear();
+    const budget = await Budget.findOne({ userId: req.user._id, month, year });
+
+    let budgetWarning = null;
+    if (budget) {
+      // Calculate current spending including this new expense
+      const startOfMonth = new Date(year, month - 1, 1);
+      const endOfMonth = new Date(year, month, 0, 23, 59, 59);
+      
+      const existingExpenses = await Expense.find({
+        userId: req.user._id,
+        date: { $gte: startOfMonth, $lte: endOfMonth }
+      });
+
+      const currentSpending = existingExpenses.reduce((sum, exp) => sum + exp.amount, 0);
+      const newTotal = currentSpending + amount;
+      const remaining = budget.amount - newTotal;
+      const isOverBudget = newTotal > budget.amount;
+      const percentageUsed = (newTotal / budget.amount) * 100;
+
+      // Show warning at different thresholds
+      if (isOverBudget) {
+        budgetWarning = {
+          message: `⚠️ Budget exceeded! You've spent ₹${newTotal.toFixed(2)} of ₹${budget.amount.toFixed(2)} (${percentageUsed.toFixed(1)}%)\n\nYou are ₹${Math.abs(remaining).toFixed(2)} over your budget limit.`,
+          isOverBudget: true,
+          remaining: remaining
+        };
+      } else if (remaining < budget.amount * 0.05) {
+        // Warn when less than 5% remaining
+        budgetWarning = {
+          message: `⚠️ Budget almost exhausted! Only ₹${remaining.toFixed(2)} remaining (${(100 - percentageUsed).toFixed(1)}% left)`,
+          isOverBudget: false,
+          remaining: remaining
+        };
+      } else if (remaining < budget.amount * 0.1) {
+        // Warn when less than 10% remaining
+        budgetWarning = {
+          message: `⚠️ Budget running low! Only ₹${remaining.toFixed(2)} remaining (${(100 - percentageUsed).toFixed(1)}% left)`,
+          isOverBudget: false,
+          remaining: remaining
+        };
+      } else if (percentageUsed >= 0.75) {
+        // Warn when 75% or more used
+        budgetWarning = {
+          message: `💡 Budget alert: You've used ${percentageUsed.toFixed(1)}% of your budget. ₹${remaining.toFixed(2)} remaining.`,
+          isOverBudget: false,
+          remaining: remaining
+        };
+      }
+    }
+
     // Create expense linked to authenticated user
     const expense = await Expense.create({
       userId: req.user._id,
@@ -23,10 +79,14 @@ router.post('/', async (req, res) => {
       category,
       paymentMethod,
       description,
-      date: date || new Date()
+      date: expenseDate
     });
 
-    res.status(201).json({ message: 'Expense added successfully', expense });
+    res.status(201).json({ 
+      message: 'Expense added successfully', 
+      expense,
+      budgetWarning 
+    });
   } catch (error) {
     res.status(500).json({ message: error.message });
   }

@@ -11,6 +11,8 @@ import HomeScreen from '../screens/HomeScreen';
 import AddExpenseScreen from '../screens/AddExpenseScreen';
 import EditExpenseScreen from '../screens/EditExpenseScreen';
 import InsightsScreen from '../screens/InsightsScreen';
+import BudgetScreen from '../screens/BudgetScreen';
+import NotificationScreen from '../screens/NotificationScreen';
 import { RootStackParamList } from '../types';
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
@@ -177,6 +179,40 @@ const AppNavigator: React.FC = () => {
           options={{
             headerShown: true,
             title: 'Edit Expense',
+            headerStyle: {
+              backgroundColor: '#6366f1',
+            },
+            headerTintColor: '#ffffff',
+            headerTitleStyle: {
+              fontWeight: '700',
+              fontSize: 18,
+            },
+            headerShadowVisible: false,
+          }}
+        />
+        <Stack.Screen
+          name="Budget"
+          component={BudgetScreen}
+          options={{
+            headerShown: true,
+            title: 'Monthly Budget',
+            headerStyle: {
+              backgroundColor: '#6366f1',
+            },
+            headerTintColor: '#ffffff',
+            headerTitleStyle: {
+              fontWeight: '700',
+              fontSize: 18,
+            },
+            headerShadowVisible: false,
+          }}
+        />
+        <Stack.Screen
+          name="Notifications"
+          component={NotificationScreen}
+          options={{
+            headerShown: true,
+            title: 'Notifications',
             headerStyle: {
               backgroundColor: '#6366f1',
             },

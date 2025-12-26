@@ -14,6 +14,7 @@ import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { BottomTabNavigationProp } from '@react-navigation/bottom-tabs';
 import { ExpenseContext } from '../context/ExpenseContext';
 import { AuthContext } from '../context/AuthContext';
+import { NotificationContext } from '../context/NotificationContext';
 import { Expense, RootStackParamList } from '../types';
 
 type TabParamList = {
@@ -33,12 +34,15 @@ interface Props {
 const HomeScreen: React.FC<Props> = ({ navigation }) => {
   const expenseContext = useContext(ExpenseContext);
   const authContext = useContext(AuthContext);
+  const notificationContext = useContext(NotificationContext);
   
   if (!expenseContext) throw new Error('ExpenseContext not found');
   if (!authContext) throw new Error('AuthContext not found');
+  if (!notificationContext) throw new Error('NotificationContext not found');
   
   const { expenses, loading, loadExpenses, deleteExpense } = expenseContext;
   const { user } = authContext;
+  const { unreadCount } = notificationContext;
   const [refreshing, setRefreshing] = useState<boolean>(false);
 
   useEffect(() => {
@@ -126,13 +130,27 @@ const HomeScreen: React.FC<Props> = ({ navigation }) => {
             <Text style={styles.greeting}>Hello,</Text>
             <Text style={styles.headerTitle}>{user?.name}!</Text>
           </View>
-        <TouchableOpacity
-          style={styles.addButton}
-          onPress={() => navigation.navigate('AddExpense')}
-            activeOpacity={0.8}
-        >
-            <Text style={styles.addButtonIcon}>+</Text>
-        </TouchableOpacity>
+          <View style={styles.headerButtons}>
+            <TouchableOpacity
+              style={styles.notificationButton}
+              onPress={() => navigation.navigate('Notifications')}
+              activeOpacity={0.8}
+            >
+              <Text style={styles.notificationIcon}>🔔</Text>
+              {unreadCount > 0 && (
+                <View style={styles.badge}>
+                  <Text style={styles.badgeText}>{unreadCount > 9 ? '9+' : unreadCount}</Text>
+                </View>
+              )}
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={styles.addButton}
+              onPress={() => navigation.navigate('AddExpense')}
+              activeOpacity={0.8}
+            >
+              <Text style={styles.addButtonIcon}>+</Text>
+            </TouchableOpacity>
+          </View>
         </View>
       </View>
 
@@ -244,6 +262,47 @@ const styles = StyleSheet.create({
     fontSize: 24,
     fontWeight: '700',
     color: '#ffffff',
+  },
+  headerButtons: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+  },
+  notificationButton: {
+    width: 50,
+    height: 50,
+    borderRadius: 25,
+    backgroundColor: '#ffffff',
+    justifyContent: 'center',
+    alignItems: 'center',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.2,
+    shadowRadius: 8,
+    elevation: 6,
+    position: 'relative',
+  },
+  notificationIcon: {
+    fontSize: 24,
+  },
+  badge: {
+    position: 'absolute',
+    top: -2,
+    right: -2,
+    backgroundColor: '#ef4444',
+    borderRadius: 10,
+    minWidth: 20,
+    height: 20,
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingHorizontal: 4,
+    borderWidth: 2,
+    borderColor: '#ffffff',
+  },
+  badgeText: {
+    color: '#ffffff',
+    fontSize: 10,
+    fontWeight: '700',
   },
   addButton: {
     width: 50,

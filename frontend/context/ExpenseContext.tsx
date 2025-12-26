@@ -3,14 +3,14 @@ import React, { createContext, useState, useEffect, useContext, ReactNode } from
 import { AuthContext } from './AuthContext';
 import api from '../utils/api';
 import { saveOfflineExpense, syncOfflineExpenses, getOfflineExpenses } from '../utils/offlineSync';
-import { Expense, OfflineExpense, ExpenseStats, CategoryBreakdown, Insights } from '../types';
+import { Expense, OfflineExpense, ExpenseStats, CategoryBreakdown, Insights, BudgetWarning } from '../types';
 
 interface ExpenseContextType {
   expenses: Expense[];
   offlineExpenses: OfflineExpense[];
   loading: boolean;
   loadExpenses: () => Promise<void>;
-  addExpense: (expenseData: Omit<Expense, '_id' | 'userId' | 'createdAt' | 'updatedAt'>) => Promise<{ success: boolean; expense?: Expense | OfflineExpense; offline?: boolean; message?: string }>;
+  addExpense: (expenseData: Omit<Expense, '_id' | 'userId' | 'createdAt' | 'updatedAt'>) => Promise<{ success: boolean; expense?: Expense | OfflineExpense; offline?: boolean; message?: string; budgetWarning?: BudgetWarning }>;
   updateExpense: (id: string, expenseData: Partial<Expense>) => Promise<{ success: boolean; expense?: Expense; message?: string }>;
   deleteExpense: (id: string) => Promise<{ success: boolean; message?: string }>;
   getStats: (type: 'daily' | 'monthly' | 'categories' | 'insights', params?: Record<string, any>) => Promise<{ success: boolean; data?: any; message?: string }>;
@@ -67,11 +67,12 @@ export const ExpenseProvider: React.FC<ExpenseProviderProps> = ({ children }) =>
   };
 
   // Add new expense (with offline support)
-  const addExpense = async (expenseData: Omit<Expense, '_id' | 'userId' | 'createdAt' | 'updatedAt'>): Promise<{ success: boolean; expense?: Expense | OfflineExpense; offline?: boolean; message?: string }> => {
+  const addExpense = async (expenseData: Omit<Expense, '_id' | 'userId' | 'createdAt' | 'updatedAt'>): Promise<{ success: boolean; expense?: Expense | OfflineExpense; offline?: boolean; message?: string; budgetWarning?: BudgetWarning }> => {
     try {
       // Try to add to backend first
-      const response = await api.post<{ expense: Expense }>('/expenses', expenseData);
+      const response = await api.post<{ expense: Expense; budgetWarning?: BudgetWarning }>('/expenses', expenseData);
       const newExpense = response.data.expense;
+      const budgetWarning = response.data.budgetWarning;
       
       // Validate the response has correct data
       if (!newExpense || !newExpense._id) {
@@ -96,7 +97,7 @@ export const ExpenseProvider: React.FC<ExpenseProviderProps> = ({ children }) =>
         return sorted;
       });
       
-      return { success: true, expense: newExpense };
+      return { success: true, expense: newExpense, budgetWarning };
     } catch (error: any) {
       // If offline, save to local storage
       if (!error.response) {

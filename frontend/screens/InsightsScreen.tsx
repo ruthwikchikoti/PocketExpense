@@ -9,15 +9,21 @@ import {
   TouchableOpacity
 } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
+import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { ExpenseContext } from '../context/ExpenseContext';
-import { Insights, CategoryBreakdown } from '../types';
+import { BudgetContext } from '../context/BudgetContext';
+import { Insights, CategoryBreakdown, RootStackParamList } from '../types';
 
 const InsightsScreen: React.FC = () => {
-  const navigation = useNavigation();
+  const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
   const expenseContext = useContext(ExpenseContext);
+  const budgetContext = useContext(BudgetContext);
+  
   if (!expenseContext) throw new Error('ExpenseContext not found');
+  if (!budgetContext) throw new Error('BudgetContext not found');
   
   const { getStats } = expenseContext;
+  const { currentBudget, refreshBudget } = budgetContext;
   const [insights, setInsights] = useState<Insights | null>(null);
   const [categoryBreakdown, setCategoryBreakdown] = useState<CategoryBreakdown | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
@@ -41,6 +47,9 @@ const InsightsScreen: React.FC = () => {
 
   const loadData = async (): Promise<void> => {
     setLoading(true);
+    
+    // Refresh budget
+    await refreshBudget();
     
     // Load insights (month comparison)
     const insightsResult = await getStats('insights');
@@ -101,20 +110,24 @@ const InsightsScreen: React.FC = () => {
           onPress={() => setViewMode('insights')}
           activeOpacity={0.8}
         >
+          <View style={styles.tabContent}>
           <Text style={[styles.tabIcon, viewMode === 'insights' && styles.activeTabIcon]}>📈</Text>
           <Text style={[styles.tabText, viewMode === 'insights' && styles.activeTabText]}>
             Trends
           </Text>
+          </View>
         </TouchableOpacity>
         <TouchableOpacity
           style={[styles.tab, viewMode === 'categories' && styles.activeTab]}
           onPress={() => setViewMode('categories')}
           activeOpacity={0.8}
         >
+          <View style={styles.tabContent}>
           <Text style={[styles.tabIcon, viewMode === 'categories' && styles.activeTabIcon]}>📊</Text>
           <Text style={[styles.tabText, viewMode === 'categories' && styles.activeTabText]}>
             Categories
           </Text>
+          </View>
         </TouchableOpacity>
       </View>
 
@@ -123,6 +136,77 @@ const InsightsScreen: React.FC = () => {
         showsVerticalScrollIndicator={false}
         contentContainerStyle={styles.scrollContent}
       >
+        {/* Budget Card */}
+        {currentBudget && (
+          <View style={styles.budgetCard}>
+            <View style={styles.budgetHeader}>
+              <Text style={styles.budgetTitle}>💰 Monthly Budget</Text>
+              <TouchableOpacity
+                onPress={() => navigation.navigate('Budget')}
+                style={styles.budgetButton}
+              >
+                <Text style={styles.budgetButtonText}>Manage</Text>
+              </TouchableOpacity>
+            </View>
+            
+            {currentBudget.budget ? (
+              <>
+                <View style={styles.budgetAmountRow}>
+                  <View>
+                    <Text style={styles.budgetLabel}>Budget</Text>
+                    <Text style={styles.budgetAmount}>{formatAmount(currentBudget.budget.amount)}</Text>
+                  </View>
+                  <View style={styles.budgetSpent}>
+                    <Text style={styles.budgetLabel}>Spent</Text>
+                    <Text style={[
+                      styles.budgetAmount,
+                      currentBudget.isOverBudget && styles.overBudgetAmount
+                    ]}>
+                      {formatAmount(currentBudget.currentSpending)}
+                    </Text>
+                  </View>
+                </View>
+                
+                <View style={styles.budgetProgressBar}>
+                  <View 
+                    style={[
+                      styles.budgetProgressFill, 
+                      { 
+                        width: `${Math.min((currentBudget.currentSpending / currentBudget.budget.amount) * 100, 100)}%`,
+                        backgroundColor: currentBudget.isOverBudget ? '#ef4444' : '#10b981'
+                      }
+                    ]} 
+                  />
+                </View>
+                
+                <View style={styles.budgetFooter}>
+                  <Text style={[
+                    styles.budgetRemaining,
+                    currentBudget.remaining < 0 && styles.overBudgetAmount
+                  ]}>
+                    {currentBudget.remaining >= 0 
+                      ? `₹${currentBudget.remaining.toFixed(2)} remaining`
+                      : `₹${Math.abs(currentBudget.remaining).toFixed(2)} over budget`
+                    }
+                  </Text>
+                  {currentBudget.isOverBudget && (
+                    <Text style={styles.budgetWarning}>⚠️ Budget Exceeded</Text>
+                  )}
+                </View>
+              </>
+            ) : (
+              <View style={styles.noBudgetContainer}>
+                <Text style={styles.noBudgetText}>No budget set for this month</Text>
+                <TouchableOpacity
+                  onPress={() => navigation.navigate('Budget')}
+                  style={styles.setBudgetButton}
+                >
+                  <Text style={styles.setBudgetButtonText}>Set Budget</Text>
+                </TouchableOpacity>
+              </View>
+            )}
+          </View>
+        )}
 
       {viewMode === 'insights' && insights && (
         <View style={styles.section}>
@@ -301,12 +385,16 @@ const styles = StyleSheet.create({
   },
   tab: {
     flex: 1,
-    flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
     paddingVertical: 12,
     paddingHorizontal: 16,
     borderRadius: 12,
+  },
+  tabContent: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   activeTab: {
     backgroundColor: '#6366f1',
@@ -336,6 +424,110 @@ const styles = StyleSheet.create({
   },
   scrollContent: {
     paddingBottom: 40,
+  },
+  budgetCard: {
+    backgroundColor: '#ffffff',
+    marginHorizontal: 20,
+    marginTop: 20,
+    marginBottom: 16,
+    padding: 20,
+    borderRadius: 16,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 12,
+    elevation: 4,
+    borderWidth: 1,
+    borderColor: '#f1f5f9',
+  },
+  budgetHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 16,
+  },
+  budgetTitle: {
+    fontSize: 18,
+    fontWeight: '700',
+    color: '#1e293b',
+  },
+  budgetButton: {
+    backgroundColor: '#6366f1',
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+    borderRadius: 8,
+  },
+  budgetButtonText: {
+    color: '#ffffff',
+    fontSize: 14,
+    fontWeight: '600',
+  },
+  budgetAmountRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    marginBottom: 16,
+  },
+  budgetSpent: {
+    alignItems: 'flex-end',
+  },
+  budgetLabel: {
+    fontSize: 12,
+    color: '#64748b',
+    marginBottom: 4,
+  },
+  budgetAmount: {
+    fontSize: 20,
+    fontWeight: '700',
+    color: '#1e293b',
+  },
+  overBudgetAmount: {
+    color: '#ef4444',
+  },
+  budgetProgressBar: {
+    height: 8,
+    backgroundColor: '#e2e8f0',
+    borderRadius: 4,
+    overflow: 'hidden',
+    marginBottom: 12,
+  },
+  budgetProgressFill: {
+    height: '100%',
+    borderRadius: 4,
+  },
+  budgetFooter: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+  },
+  budgetRemaining: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: '#10b981',
+  },
+  budgetWarning: {
+    fontSize: 12,
+    color: '#ef4444',
+    fontWeight: '600',
+  },
+  noBudgetContainer: {
+    alignItems: 'center',
+    paddingVertical: 20,
+  },
+  noBudgetText: {
+    fontSize: 14,
+    color: '#64748b',
+    marginBottom: 12,
+  },
+  setBudgetButton: {
+    backgroundColor: '#6366f1',
+    paddingHorizontal: 24,
+    paddingVertical: 12,
+    borderRadius: 8,
+  },
+  setBudgetButtonText: {
+    color: '#ffffff',
+    fontSize: 14,
+    fontWeight: '600',
   },
   section: {
     paddingHorizontal: 20,

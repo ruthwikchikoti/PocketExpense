@@ -30,6 +30,7 @@ connectDB();
 // Routes
 app.use('/api/auth', require('./routes/auth.routes'));
 app.use('/api/expenses', require('./routes/expense.routes'));
+app.use('/api/budget', require('./routes/budget.routes'));
 
 // Health check endpoint
 app.get('/api/health', (req, res) => {

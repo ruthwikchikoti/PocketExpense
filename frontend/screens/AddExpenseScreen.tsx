@@ -14,6 +14,7 @@ import {
 } from 'react-native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { ExpenseContext } from '../context/ExpenseContext';
+import { NotificationContext } from '../context/NotificationContext';
 import { CATEGORIES, PAYMENT_METHODS } from '../utils/config';
 import { ExpenseCategory, PaymentMethod, RootStackParamList } from '../types';
 
@@ -120,9 +121,13 @@ const CustomDropdown: React.FC<CustomDropdownProps> = ({
 
 const AddExpenseScreen: React.FC<Props> = ({ navigation }) => {
   const expenseContext = useContext(ExpenseContext);
+  const notificationContext = useContext(NotificationContext);
+  
   if (!expenseContext) throw new Error('ExpenseContext not found');
+  if (!notificationContext) throw new Error('NotificationContext not found');
   
   const { addExpense } = expenseContext;
+  const { addNotification } = notificationContext;
   const [amount, setAmount] = useState<string>('');
   const [category, setCategory] = useState<ExpenseCategory>('Food');
   const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>('Cash');
@@ -176,16 +181,27 @@ const AddExpenseScreen: React.FC<Props> = ({ navigation }) => {
         setDescription('');
         setDate(new Date().toISOString().split('T')[0]);
         
-        // Navigate back immediately, then show success message
-        navigation.goBack();
+        // Add notification if budget warning exists
+        if (result.budgetWarning) {
+          addNotification({
+            type: result.budgetWarning.isOverBudget ? 'error' : 'warning',
+            title: result.budgetWarning.isOverBudget ? '⚠️ Budget Exceeded!' : '⚠️ Budget Warning',
+            message: result.budgetWarning.message,
+            budgetWarning: result.budgetWarning
+          });
+        } else {
+          // Add success notification
+          addNotification({
+            type: 'success',
+            title: '✅ Expense Added',
+            message: result.offline 
+              ? 'Expense saved offline. Will sync when online.' 
+              : 'Expense added successfully'
+          });
+        }
         
-        // Show success message after a brief delay (for better UX)
-        setTimeout(() => {
-          Alert.alert(
-            'Success',
-            result.offline ? 'Expense saved offline. Will sync when online.' : 'Expense added successfully'
-          );
-        }, 100);
+        // Navigate back
+        navigation.goBack();
       } else {
         Alert.alert('Error', result.message || 'Failed to add expense');
       }

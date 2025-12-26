@@ -45,7 +45,7 @@ const RegisterScreen: React.FC<Props> = ({ navigation }) => {
 
     setLoading(true);
     try {
-      const result = await register(name, email, password);
+    const result = await register(name, email, password);
       
       if (result.success) {
         // Navigate to Login screen immediately after successful registration
@@ -57,8 +57,8 @@ const RegisterScreen: React.FC<Props> = ({ navigation }) => {
           routes: [{ name: 'Login' }],
         });
       } else {
-        setLoading(false);
-        Alert.alert('Registration Failed', result.message || 'Registration failed');
+    setLoading(false);
+      Alert.alert('Registration Failed', result.message || 'Registration failed');
       }
     } catch (error: any) {
       setLoading(false);
